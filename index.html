@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>ポケカ一人回し</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -11,16 +11,16 @@
   --bd:#30363d;--bd2:#4a5568;
   --acc:#f59e0b;--bl:#3b82f6;--rd:#ef4444;--gr:#10b981;--pu:#8b5cf6;
   --tx:#e6edf3;--tx2:#8b949e;--tx3:#6e7681;
-  --cw:52px;--ch:72px;
+  --cw:54px;--ch:75px;
 }
 html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino Kaku Gothic Pro','Noto Sans JP',sans-serif;font-size:13px;overflow:hidden;touch-action:manipulation}
 #app{display:flex;flex-direction:column;height:100dvh}
 
 /* HEADER */
-#hdr{background:var(--s1);border-bottom:1px solid var(--bd);padding:5px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;min-height:42px}
+#hdr{background:var(--s1);border-bottom:1px solid var(--bd);padding:5px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;min-height:44px}
 #hdr h1{font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap}
-.hbtn{background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:5px 9px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap;transition:background .15s;touch-action:manipulation}
-.hbtn:hover,.hbtn:active{background:var(--s3)}
+.hbtn{background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:5px 9px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap}
+.hbtn:active{background:var(--s3)}
 .hbtn:disabled{opacity:.4;cursor:not-allowed}
 .hbtn.go{background:var(--acc);color:#000;font-weight:700;border-color:var(--acc)}
 .hbtn.go:active{background:#d97706}
@@ -30,7 +30,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 /* MAIN */
 #main{display:flex;flex:1;overflow:hidden}
 #field{flex:1;display:flex;flex-direction:column;gap:4px;padding:5px;overflow-y:auto;min-width:0}
-#sb{width:140px;flex-shrink:0;background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;gap:4px;padding:5px;overflow-y:auto}
+#sb{width:145px;flex-shrink:0;background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;gap:4px;padding:5px;overflow-y:auto}
 
 /* ZONES */
 .zone{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:5px}
@@ -39,21 +39,32 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 .zc{color:var(--bl);font-weight:700;font-size:11px}
 .zbtns{display:flex;gap:3px;flex-wrap:wrap}
 .zb{background:transparent;border:1px solid var(--bd2);color:var(--tx3);padding:2px 6px;border-radius:4px;cursor:pointer;font-size:11px}
-.zb:active{background:var(--s2);color:var(--tx)}
-.zcards{display:flex;flex-wrap:wrap;gap:3px;min-height:78px;align-content:flex-start;padding:2px}
-.zcards.hov{outline:2px dashed var(--bl);border-radius:6px}
+.zb:active{background:var(--s2)}
+.zcards{display:flex;flex-wrap:wrap;gap:3px;min-height:80px;align-content:flex-start;padding:2px}
 
 /* BATTLE/BENCH */
 #bb-row{display:flex;gap:4px;align-items:flex-start}
-.bslot{flex-shrink:0;width:84px;min-height:96px;background:rgba(239,68,68,.05);border:1px dashed var(--rd);border-radius:8px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bslot{flex-shrink:0;width:88px;min-height:100px;background:rgba(239,68,68,.05);border:1px dashed var(--rd);border-radius:8px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bslot.occ{border-style:solid}
 .slbl{font-size:9px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px}
 .attrow{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}
 .attrow .card{width:26px;height:36px}
+
+/* 状態異常マーカー */
+.status-markers{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px}
+.smark{padding:1px 4px;border-radius:3px;font-size:9px;font-weight:700;cursor:pointer;border:none;opacity:.85}
+.smark:active{opacity:1}
+.smark.やけど{background:#ef4444;color:#fff}
+.smark.どく{background:#8b5cf6;color:#fff}
+.smark.ねむり{background:#3b82f6;color:#fff}
+.smark.まひ{background:#f59e0b;color:#000}
+.smark.こんらん{background:#ec4899;color:#fff}
+.smark.off{background:var(--s3);color:var(--tx3)}
+
 #bench-area{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .slbl2{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em}
 #bench-slots{display:flex;gap:3px;flex-wrap:wrap}
-.bnslot{width:70px;min-height:86px;background:rgba(59,130,246,.04);border:1px dashed var(--bd2);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
+.bnslot{width:72px;min-height:88px;background:rgba(59,130,246,.04);border:1px dashed var(--bd2);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
 .bnslot.occ{border-style:solid;border-color:var(--bl)}
 .snum{font-size:9px;color:var(--tx3)}
 .bnslot .attrow .card{width:22px;height:30px}
@@ -62,14 +73,8 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 #stadium-zone{border-color:#4a3f6b;background:rgba(139,92,246,.05)}
 
 /* CARDS */
-.card{
-  width:var(--cw);height:var(--ch);border-radius:5px;border:1px solid var(--bd);
-  cursor:pointer;position:relative;display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-end;padding-bottom:2px;
-  user-select:none;overflow:hidden;background:var(--s2);flex-shrink:0;
-  transition:transform .1s
-}
-.card:active{transform:scale(.95)}
+.card{width:var(--cw);height:var(--ch);border-radius:5px;border:1px solid var(--bd);cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px;user-select:none;overflow:hidden;background:var(--s2);flex-shrink:0;transition:transform .1s}
+.card:active{transform:scale(.94)}
 .cdot{position:absolute;top:3px;left:3px;width:7px;height:7px;border-radius:50%}
 .cimg{width:100%;flex:1;object-fit:cover;display:block}
 .cph{width:100%;flex:1;display:flex;align-items:center;justify-content:center;font-size:20px}
@@ -98,10 +103,19 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 .sbbtn{width:100%;background:transparent;border:1px solid var(--bd2);color:var(--tx3);padding:4px;border-radius:4px;cursor:pointer;font-size:11px;margin-top:4px}
 .sbbtn:active{background:var(--s1);color:var(--tx)}
 
+/* コインエリア */
+#coin-area{text-align:center}
+.coin-result{font-size:28px;margin:4px 0;min-height:36px}
+.coin-btn{background:var(--acc);color:#000;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;width:100%}
+.coin-btn:active{background:#d97706}
+.coin-hist{font-size:10px;color:var(--tx3);margin-top:3px;min-height:14px}
+@keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.flipping{animation:flip .3s ease}
+
 /* MODAL */
-#mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;align-items:flex-end;justify-content:center;padding:0}
+#mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;align-items:flex-end;justify-content:center}
 #mbg.open{display:flex}
-#mbox{background:var(--s1);border:1px solid var(--bd2);border-radius:16px 16px 0 0;padding:16px;width:100%;max-width:480px;max-height:75vh;overflow-y:auto}
+#mbox{background:var(--s1);border:1px solid var(--bd2);border-radius:16px 16px 0 0;padding:16px;width:100%;max-width:480px;max-height:78vh;overflow-y:auto}
 #mbox h3{font-size:14px;color:var(--acc);margin-bottom:12px}
 .mb{display:block;width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:11px 14px;border-radius:8px;cursor:pointer;text-align:left;font-size:13px;margin-bottom:6px}
 .mb:active{background:var(--s3);color:var(--bl)}
@@ -114,13 +128,15 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 .dnm{flex:1;font-size:12px}
 .dty{font-size:10px;color:var(--tx3)}
 
-/* QR MODAL */
-#qr-area{text-align:center;padding:12px 0}
-#qr-area img{width:180px;height:180px;border-radius:8px}
-#qr-area p{font-size:11px;color:var(--tx2);margin-top:8px;line-height:1.6;word-break:break-all}
+/* DECK INPUT MODAL */
+#deck-input-area{display:flex;flex-direction:column;gap:8px}
+#deck-input-area textarea{background:var(--s2);border:1px solid var(--bd2);color:var(--tx);padding:10px;border-radius:8px;font-size:12px;width:100%;height:180px;resize:none;font-family:monospace}
+#deck-input-area textarea::placeholder{color:var(--tx3)}
+.input-hint{font-size:11px;color:var(--tx3);line-height:1.6}
+.input-hint b{color:var(--tx2)}
 
 /* TOAST */
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--acc);color:var(--tx);padding:8px 16px;border-radius:8px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:2000;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--acc);color:var(--tx);padding:8px 16px;border-radius:8px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:2000;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis}
 #toast.show{opacity:1}
 
 /* LOADING */
@@ -130,15 +146,6 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 @keyframes sp{to{transform:rotate(360deg)}}
 #lmsg{font-size:13px;color:var(--tx2);text-align:center;padding:0 20px}
 
-/* WELCOME */
-#welcome{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;align-items:center;justify-content:center;padding:16px}
-#welcome.open{display:flex}
-#wbox{background:var(--s1);border:1px solid var(--bd2);border-radius:14px;padding:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto}
-#wbox h2{font-size:15px;color:var(--acc);margin-bottom:10px}
-#wbox p{font-size:12px;color:var(--tx2);line-height:1.7;margin-bottom:10px}
-.wb{display:block;width:100%;background:var(--acc);color:#000;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;text-align:center}
-.wb.sec{background:var(--s2);color:var(--tx);border:1px solid var(--bd)}
-
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 </style>
@@ -147,16 +154,17 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
 <div id="app">
   <div id="hdr">
     <h1>▶ POKÉCA SOLO</h1>
+    <button class="hbtn" onclick="showDeckInput()">📋 デッキ読み込み</button>
     <button class="hbtn go" id="btn-start" disabled>ゲーム開始</button>
     <button class="hbtn" onclick="doReset()">リセット</button>
     <div style="flex:1"></div>
     <div class="badge">サイド <b id="hpr">6</b></div>
     <div class="badge">T<b id="htr">0</b></div>
     <button class="hbtn" onclick="nextTurn()">+</button>
-    <button class="hbtn" id="btn-qr" style="display:none" onclick="showQR()">📱QR</button>
   </div>
   <div id="main">
     <div id="field">
+      <!-- スタジアム -->
       <div class="zone" id="stadium-zone">
         <div class="zh">
           <span class="zt" style="color:var(--pu)">スタジアム</span>
@@ -164,17 +172,27 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
         </div>
         <div class="zcards" id="cards-stadium"></div>
       </div>
+      <!-- バトル場 + ベンチ -->
       <div id="bb-row">
         <div class="bslot" id="bslot">
           <div class="slbl">バトル場</div>
           <div id="bp"></div>
           <div class="attrow" id="ba"></div>
+          <!-- 状態異常マーカー -->
+          <div class="status-markers" id="battle-markers">
+            <button class="smark off" data-status="やけど" onclick="toggleStatus('battle','やけど')">🔥</button>
+            <button class="smark off" data-status="どく" onclick="toggleStatus('battle','どく')">☠</button>
+            <button class="smark off" data-status="ねむり" onclick="toggleStatus('battle','ねむり')">💤</button>
+            <button class="smark off" data-status="まひ" onclick="toggleStatus('battle','まひ')">⚡</button>
+            <button class="smark off" data-status="こんらん" onclick="toggleStatus('battle','こんらん')">😵</button>
+          </div>
         </div>
         <div id="bench-area">
           <div class="slbl2">ベンチ</div>
           <div id="bench-slots"></div>
         </div>
       </div>
+      <!-- 手札 -->
       <div class="zone">
         <div class="zh">
           <span class="zt">手札</span>
@@ -187,7 +205,9 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
         <div class="zcards" id="cards-hand"></div>
       </div>
     </div>
+    <!-- SIDEBAR -->
     <div id="sb">
+      <!-- デッキ -->
       <div class="sbx">
         <div class="sbh"><span class="sbt">デッキ</span><span class="sbc" id="cnt-deck">0</span></div>
         <div style="display:flex;justify-content:center">
@@ -200,11 +220,22 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
         <button class="sbbtn" onclick="shuffleDeck()">シャッフル</button>
         <button class="sbbtn" onclick="viewDeck()">デッキを見る</button>
       </div>
+      <!-- コイン -->
+      <div class="sbx">
+        <div class="sbh"><span class="sbt">コイン</span></div>
+        <div id="coin-area">
+          <div class="coin-result" id="coin-result">🪙</div>
+          <button class="coin-btn" onclick="flipCoin()">投げる</button>
+          <div class="coin-hist" id="coin-hist"></div>
+        </div>
+      </div>
+      <!-- サイド -->
       <div class="sbx">
         <div class="sbh"><span class="sbt">サイド</span><span class="sbc" id="cnt-side">0</span></div>
         <div class="sbcards" id="cards-side"></div>
         <button class="sbbtn" onclick="takePrize()">1枚取る</button>
       </div>
+      <!-- トラッシュ -->
       <div class="sbx">
         <div class="sbh"><span class="sbt">トラッシュ</span><span class="sbc" id="cnt-trash">0</span></div>
         <div class="sbcards" id="cards-trash"></div>
@@ -214,126 +245,188 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Hiragino
   </div>
 </div>
 
-<!-- MODAL (bottom sheet) -->
+<!-- MODAL -->
 <div id="mbg" onclick="closeModal()">
   <div id="mbox" onclick="event.stopPropagation()">
     <h3 id="mtitle">メニュー</h3>
     <div id="mbody"></div>
   </div>
 </div>
-
-<!-- LOADING -->
 <div id="loading"><div class="spin"></div><div id="lmsg">読み込み中...</div></div>
-
-<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- WELCOME -->
-<div id="welcome" class="open">
-  <div id="wbox">
-    <h2>▶ ポケカ一人回し</h2>
-    <p id="w-msg">PCのChrome拡張機能でデッキを読み込んでください。<br>または下のボタンでサンプルデッキを試せます。</p>
-    <button class="wb" onclick="loadSample()">サンプルデッキで試す</button>
-    <button class="wb sec" onclick="closeWelcome()">デッキ読み込み済みの場合はここ</button>
-  </div>
-</div>
-
 <script>
-// ============================================================
-// STATE
-// ============================================================
 let _uid=0; const uid=()=>++_uid;
 const S={
   deck:[],hand:[],side:[],trash:[],stadium:[],
-  battle:{pokemon:null,attached:[]},
-  bench:Array(5).fill(0).map(()=>({pokemon:null,attached:[]})),
-  turn:0, deckUrl:null
+  battle:{pokemon:null,attached:[],statuses:new Set()},
+  bench:Array(5).fill(0).map(()=>({pokemon:null,attached:[],statuses:new Set()})),
+  turn:0
 };
-
-// ============================================================
-// URL PARAMS — デッキデータをURLから読み込む
-// ============================================================
-function loadFromURL(){
-  const params=new URLSearchParams(location.search);
-  const data=params.get('d');
-  if(!data) return false;
-  try{
-    const decoded=JSON.parse(decodeURIComponent(atob(data)));
-    if(!decoded?.cards?.length) return false;
-    loading('デッキデータを読み込み中...');
-    setTimeout(()=>{
-      S.deck=decoded.cards.map(c=>({
-        uid:uid(),name:c.n,supertype:c.t||'Pokémon',imageUrl:c.i||null,_zone:'deck'
-      }));
-      S.deck=shuffle(S.deck);
-      resetField();
-      document.getElementById('btn-start').disabled=false;
-      document.getElementById('btn-qr').style.display='';
-      S.deckUrl=location.href;
-      unload(); closeWelcome(); render();
-      toast(`${S.deck.length}枚のデッキを読み込みました`);
-    },300);
-    return true;
-  } catch(e){ return false; }
-}
 
 // ============================================================
 // UTILS
 // ============================================================
-function toast(msg,d=2500){
-  const e=document.getElementById('toast');
-  e.textContent=msg;e.classList.add('show');
-  clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),d);
-}
+function toast(msg,d=2500){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),d);}
 function loading(msg){document.getElementById('lmsg').textContent=msg||'読み込み中...';document.getElementById('loading').classList.add('open');}
 function unload(){document.getElementById('loading').classList.remove('open');}
-function openModal(title,body){
-  document.getElementById('mtitle').textContent=title;
-  document.getElementById('mbody').innerHTML=body;
-  document.getElementById('mbg').classList.add('open');
-}
+function openModal(title,body){document.getElementById('mtitle').textContent=title;document.getElementById('mbody').innerHTML=body;document.getElementById('mbg').classList.add('open');}
 function closeModal(){document.getElementById('mbg').classList.remove('open');}
-function closeWelcome(){document.getElementById('welcome').classList.remove('open');}
-
-function typeClass(st){
-  if(!st)return'';const s=st.toLowerCase();
-  if(s.includes('pokemon')||s.includes('ポケモン'))return'pokemon';
-  if(s.includes('energy')||s.includes('エネルギー'))return'energy';
-  if(s.includes('trainer')||s.includes('トレーナー'))return'trainer';
-  return'';
-}
+function typeClass(st){if(!st)return'';const s=st.toLowerCase();if(s[0]==='p')return'pokemon';if(s[0]==='e')return'energy';if(s[0]==='t')return'trainer';return'';}
 function typeEmoji(st){const c=typeClass(st);return c==='pokemon'?'⚡':c==='energy'?'◈':c==='trainer'?'♟':'🃏';}
 function typeColor(st){const c=typeClass(st);return c==='pokemon'?'var(--rd)':c==='energy'?'var(--gr)':c==='trainer'?'var(--pu)':'var(--tx3)';}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function isPokemon(c){return typeClass(c.supertype)==='pokemon';}
 
 // ============================================================
-// CARD ELEMENT
+// COIN
 // ============================================================
-function mkCard(card,facedown=false){
-  const el=document.createElement('div');
-  el.className='card '+typeClass(card.supertype)+(facedown?' fd':'');
-  el.dataset.uid=card.uid;
+let coinHistory=[];
+function flipCoin(){
+  const result=document.getElementById('coin-result');
+  result.classList.remove('flipping');
+  void result.offsetWidth;
+  result.classList.add('flipping');
+  setTimeout(()=>{
+    const heads=Math.random()<0.5;
+    result.textContent=heads?'⭕':'❌';
+    coinHistory.unshift(heads?'⭕':'❌');
+    if(coinHistory.length>5)coinHistory.pop();
+    document.getElementById('coin-hist').textContent=coinHistory.join(' ');
+    toast(heads?'おもて！':'うら！');
+  },150);
+}
 
-  if(!facedown){
-    const dot=document.createElement('div');dot.className='cdot';el.appendChild(dot);
-    if(card.imageUrl){
-      const img=document.createElement('img');
-      img.className='cimg';img.src=card.imageUrl;img.alt=card.name;img.loading='lazy';
-      img.onerror=()=>{img.remove();el.insertBefore(mkPh(card),el.querySelector('.cnm'));};
-      el.appendChild(img);
-    } else {
-      el.appendChild(mkPh(card));
+// ============================================================
+// STATUS MARKERS (状態異常)
+// ============================================================
+function toggleStatus(zone,status){
+  const slot=zone==='battle'?S.battle:null;
+  if(!slot)return;
+  if(slot.statuses.has(status))slot.statuses.delete(status);
+  else slot.statuses.add(status);
+  renderStatusMarkers();
+  toast(slot.statuses.has(status)?`${status}になった`:`${status}が回復した`);
+}
+
+function renderStatusMarkers(){
+  const markers=document.getElementById('battle-markers');
+  if(!markers)return;
+  markers.querySelectorAll('.smark').forEach(btn=>{
+    const st=btn.dataset.status;
+    const active=S.battle.statuses.has(st);
+    btn.className='smark '+(active?st:'off');
+  });
+}
+
+// ============================================================
+// DECK INPUT
+// ============================================================
+function showDeckInput(){
+  openModal('デッキを読み込む',`
+    <div id="deck-input-area">
+      <p class="input-hint">
+        <b>公式サイトのリスト表示からコピペする方法：</b><br>
+        pokemon-card.com のデッキページ→「リスト表示」→テキストをコピー→下に貼り付け<br><br>
+        <b>形式例：</b><br>
+        4 ピカチュウex SV1 1<br>
+        2 基本雷エネルギー SV1 171
+      </p>
+      <textarea id="deck-text" placeholder="ここにデッキリストを貼り付け..."></textarea>
+      <button class="mb go" style="background:var(--acc);color:#000;font-weight:700" onclick="parseDeckText()">読み込む</button>
+      <button class="mb" onclick="closeModal();loadSample()">サンプルデッキで試す</button>
+      <button class="mb cancel" onclick="closeModal()">閉じる</button>
+    </div>
+  `);
+}
+
+async function parseDeckText(){
+  const text=document.getElementById('deck-text').value.trim();
+  if(!text){toast('テキストを入力してください');return;}
+  closeModal();
+  loading('デッキを解析中...');
+
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l&&!/^[^\d].*[:：]/.test(l)||/^\d/.test(l));
+  const parsed=[];
+
+  for(const line of lines){
+    // "4 ピカチュウex SV1 1" 形式
+    const m=line.match(/^(\d+)\s+(.+?)\s+([A-Za-z0-9\-]+)\s+(\d+)\s*$/);
+    if(m){
+      parsed.push({count:parseInt(m[1]),name:m[2],setId:m[3].toLowerCase(),num:m[4]});
+      continue;
     }
-    const nm=document.createElement('div');nm.className='cnm';
-    nm.textContent=card.name.length>11?card.name.slice(0,10)+'…':card.name;
-    el.appendChild(nm);
+    // "4 ピカチュウex" 形式
+    const m2=line.match(/^(\d+)\s+(.+)$/);
+    if(m2){
+      parsed.push({count:parseInt(m2[1]),name:m2[2],setId:null,num:null});
+    }
   }
 
-  el.addEventListener('click',()=>showMenu(card,facedown));
-  return el;
+  if(parsed.length===0){unload();toast('デッキを読み込めませんでした');return;}
+
+  // カード情報を取得
+  const cards=[];
+  let fetched=0;
+  for(const p of parsed){
+    let imageUrl=null;
+    let finalName=p.name;
+    if(p.setId&&p.num){
+      try{
+        document.getElementById('lmsg').textContent=`画像取得中... (${++fetched}/${parsed.length})`;
+        const res=await fetch(`https://api.pokemontcg.io/v2/cards?q=number:${p.num}%20set.id:${p.setId}&pageSize=1`);
+        const data=await res.json();
+        const card=data?.data?.[0];
+        if(card){imageUrl=card.images?.small||null;finalName=card.name||p.name;}
+      }catch(e){}
+    }
+    for(let i=0;i<p.count;i++){
+      cards.push({uid:uid(),name:finalName,supertype:guessType(finalName),imageUrl,_zone:'deck'});
+    }
+  }
+
+  S.deck=shuffle(cards);
+  resetField();
+  document.getElementById('btn-start').disabled=false;
+  unload();render();
+  toast(`${cards.length}枚のデッキを読み込みました`);
 }
-function mkPh(card){const ph=document.createElement('div');ph.className='cph';ph.textContent=typeEmoji(card.supertype);return ph;}
+
+function guessType(name){
+  const n=name.toLowerCase();
+  if(/エネルギー|energy/.test(n))return'Energy';
+  if(/サポート|グッズ|スタジアム|supporter|item|stadium|ボール|ball|博士|マリィ|ナンジャモ|ボス|ペパー|ジャッジ|シロナ|ヒガナ|グラジオ|フウ|ラン|ハマナ|カイ|スグリ|アカマツ|レポート/.test(n))return'Trainer';
+  return'Pokémon';
+}
+
+// ============================================================
+// URL PARAMS (Chrome拡張連携)
+// ============================================================
+function loadFromURL(){
+  const params=new URLSearchParams(location.search);
+  const data=params.get('d');
+  if(!data)return false;
+  try{
+    const decoded=JSON.parse(decodeURIComponent(atob(data)));
+    if(!decoded?.cards?.length)return false;
+    loading('デッキデータを読み込み中...');
+    setTimeout(()=>{
+      S.deck=decoded.cards.map(c=>({
+        uid:uid(),
+        name:c.n||c.name||'不明',
+        supertype:c.t==='P'?'Pokémon':c.t==='E'?'Energy':c.t==='T'?'Trainer':(c.supertype||'Pokémon'),
+        imageUrl:c.i||c.imageUrl||null,
+        _zone:'deck'
+      }));
+      S.deck=shuffle(S.deck);
+      resetField();
+      document.getElementById('btn-start').disabled=false;
+      unload();render();
+      toast(`${S.deck.length}枚のデッキを読み込みました`);
+    },300);
+    return true;
+  }catch(e){return false;}
+}
 
 // ============================================================
 // GAME ACTIONS
@@ -347,9 +440,9 @@ function startGame(){
 }
 function resetField(){
   S.hand=[];S.side=[];S.trash=[];S.stadium=[];
-  S.battle={pokemon:null,attached:[]};
-  S.bench=Array(5).fill(0).map(()=>({pokemon:null,attached:[]}));
-  S.turn=0;
+  S.battle={pokemon:null,attached:[],statuses:new Set()};
+  S.bench=Array(5).fill(0).map(()=>({pokemon:null,attached:[],statuses:new Set()}));
+  S.turn=0;renderStatusMarkers();
 }
 function doReset(){
   const all=[...S.deck,...S.hand,...S.side,...S.trash,...S.stadium,
@@ -386,12 +479,12 @@ function sortZone(zone){
 }
 function swapBenchBattle(i){
   const b=S.bench[i],bt=S.battle;
-  const tmp={pokemon:bt.pokemon,attached:[...bt.attached]};
-  bt.pokemon=b.pokemon;bt.attached=[...b.attached];
-  b.pokemon=tmp.pokemon;b.attached=tmp.attached;
+  const tmp={pokemon:bt.pokemon,attached:[...bt.attached],statuses:new Set(bt.statuses)};
+  bt.pokemon=b.pokemon;bt.attached=[...b.attached];bt.statuses=new Set(b.statuses);
+  b.pokemon=tmp.pokemon;b.attached=tmp.attached;b.statuses=tmp.statuses;
   if(bt.pokemon)bt.pokemon._zone='battle';bt.attached.forEach(c=>c._zone='battle');
   if(b.pokemon)b.pokemon._zone=`bench-${i}`;b.attached.forEach(c=>c._zone=`bench-${i}`);
-  render();toast('バトル場とベンチを入れ替えました');
+  render();renderStatusMarkers();toast('バトル場とベンチを入れ替えました');
 }
 function nextTurn(){S.turn++;render();toast(`ターン ${S.turn}`);}
 
@@ -409,7 +502,7 @@ window.moveCard=function(cardUid,from,to,si){
     else if(zone==='battle'){
       if(S.battle.pokemon?.uid===cardUid){card=S.battle.pokemon;S.battle.pokemon=null;}
       else{const i=S.battle.attached.findIndex(c=>c.uid===cardUid);if(i>=0)card=S.battle.attached.splice(i,1)[0];}
-    } else if(zone?.startsWith('bench-')){
+    }else if(zone?.startsWith('bench-')){
       const idx=parseInt(zone.split('-')[1]);
       if(S.bench[idx].pokemon?.uid===cardUid){card=S.bench[idx].pokemon;S.bench[idx].pokemon=null;}
       else{const i=S.bench[idx].attached.findIndex(c=>c.uid===cardUid);if(i>=0)card=S.bench[idx].attached.splice(i,1)[0];}
@@ -427,13 +520,31 @@ window.moveCard=function(cardUid,from,to,si){
 };
 
 // ============================================================
+// CARD ELEMENT
+// ============================================================
+function mkCard(card,facedown=false){
+  const el=document.createElement('div');
+  el.className='card '+typeClass(card.supertype)+(facedown?' fd':'');
+  el.dataset.uid=card.uid;
+  if(!facedown){
+    const dot=document.createElement('div');dot.className='cdot';el.appendChild(dot);
+    if(card.imageUrl){
+      const img=document.createElement('img');img.className='cimg';img.src=card.imageUrl;img.alt=card.name;img.loading='lazy';
+      img.onerror=()=>{img.remove();el.insertBefore(mkPh(card),el.querySelector('.cnm'));};
+      el.appendChild(img);
+    }else{el.appendChild(mkPh(card));}
+    const nm=document.createElement('div');nm.className='cnm';nm.textContent=card.name.length>11?card.name.slice(0,10)+'…':card.name;el.appendChild(nm);
+  }
+  el.addEventListener('click',()=>showMenu(card,facedown));
+  return el;
+}
+function mkPh(card){const ph=document.createElement('div');ph.className='cph';ph.textContent=typeEmoji(card.supertype);return ph;}
+
+// ============================================================
 // CARD MENU
 // ============================================================
 function showMenu(card,facedown){
-  if(facedown&&card._zone==='side'){
-    openModal(card.name,`<button class="mb" onclick="closeModal();moveCard(${card.uid},'side','hand')">手札に取る</button><button class="mb cancel" onclick="closeModal()">閉じる</button>`);
-    return;
-  }
+  if(facedown&&card._zone==='side'){openModal(card.name,`<button class="mb" onclick="closeModal();moveCard(${card.uid},'side','hand')">手札に取る</button><button class="mb cancel" onclick="closeModal()">閉じる</button>`);return;}
   const from=card._zone;
   const btns=[];
   const a=(lbl,action,cls='')=>btns.push(`<button class="mb ${cls}" onclick="closeModal();${action}">${lbl}</button>`);
@@ -443,19 +554,19 @@ function showMenu(card,facedown){
     a('スタジアムに置く',`moveCard(${card.uid},'hand','stadium')`);
     a('トラッシュ',`moveCard(${card.uid},'hand','trash')`,'red');
     a('デッキに戻す',`moveCard(${card.uid},'hand','deck')`);
-  } else if(from==='battle'){
+  }else if(from==='battle'){
     a('手札に戻す',`moveCard(${card.uid},'battle','hand')`);
     a('トラッシュ',`moveCard(${card.uid},'battle','trash')`,'red');
-  } else if(from?.startsWith('bench-')){
+  }else if(from?.startsWith('bench-')){
     a('バトル場に出す',`moveCard(${card.uid},'${from}','battle')`);
     a('手札に戻す',`moveCard(${card.uid},'${from}','hand')`);
     a('トラッシュ',`moveCard(${card.uid},'${from}','trash')`,'red');
-  } else if(from==='trash'){
+  }else if(from==='trash'){
     a('手札に戻す',`moveCard(${card.uid},'trash','hand')`);
     a('デッキに戻す',`moveCard(${card.uid},'trash','deck')`);
-  } else if(from==='side'){
+  }else if(from==='side'){
     a('手札に取る',`moveCard(${card.uid},'side','hand')`);
-  } else if(from==='stadium'){
+  }else if(from==='stadium'){
     a('トラッシュ',`moveCard(${card.uid},'stadium','trash')`,'red');
     a('手札に戻す',`moveCard(${card.uid},'stadium','hand')`);
   }
@@ -466,10 +577,7 @@ function showMenu(card,facedown){
 // ============================================================
 // RENDER
 // ============================================================
-function rList(id,cards,fd=false){
-  const el=document.getElementById(id);if(!el)return;
-  el.innerHTML='';cards.forEach(c=>el.appendChild(mkCard(c,fd)));
-}
+function rList(id,cards,fd=false){const el=document.getElementById(id);if(!el)return;el.innerHTML='';cards.forEach(c=>el.appendChild(mkCard(c,fd)));}
 function render(){
   document.getElementById('cnt-deck').textContent=S.deck.length;
   document.getElementById('pile-cnt').textContent=S.deck.length;
@@ -479,9 +587,7 @@ function render(){
   document.getElementById('cnt-stadium').textContent=S.stadium.length;
   document.getElementById('hpr').textContent=S.side.length;
   document.getElementById('htr').textContent=S.turn;
-  rList('cards-hand',S.hand);
-  rList('cards-trash',S.trash);
-  rList('cards-stadium',S.stadium);
+  rList('cards-hand',S.hand);rList('cards-trash',S.trash);rList('cards-stadium',S.stadium);
   rList('cards-side',S.side,true);
   const bp=document.getElementById('bp'),ba=document.getElementById('ba'),bslot=document.getElementById('bslot');
   bp.innerHTML='';ba.innerHTML='';
@@ -494,6 +600,7 @@ function render(){
     if(b.pokemon){slot?.classList.add('occ');pp.appendChild(mkCard(b.pokemon));b.attached.forEach(c=>ap.appendChild(mkCard(c)));}
     else slot?.classList.remove('occ');
   });
+  renderStatusMarkers();
 }
 
 // ============================================================
@@ -502,8 +609,7 @@ function render(){
 function setupBench(){
   const con=document.getElementById('bench-slots');con.innerHTML='';
   for(let i=0;i<5;i++){
-    const s=document.createElement('div');
-    s.className='bnslot';s.dataset.si=i;
+    const s=document.createElement('div');s.className='bnslot';s.dataset.si=i;
     s.innerHTML=`<div class="snum">${i+1}</div><div id="bp-${i}"></div><div class="attrow" id="ba-${i}"></div><button class="swpbtn" onclick="swapBenchBattle(${i})">⇄ バトル</button>`;
     con.appendChild(s);
   }
@@ -513,7 +619,7 @@ function setupBench(){
 // SAMPLE DECK
 // ============================================================
 function loadSample(){
-  closeWelcome();loading('サンプルデッキを生成中...');
+  loading('サンプルデッキを生成中...');
   const defs=[
     {name:'ピカチュウex',st:'Pokémon',cnt:4},{name:'ライチュウ',st:'Pokémon',cnt:3},
     {name:'ミライドン',st:'Pokémon',cnt:3},{name:'ネオラント V',st:'Pokémon',cnt:2},
@@ -529,44 +635,12 @@ function loadSample(){
 }
 
 // ============================================================
-// QR CODE (スマホ共有)
-// ============================================================
-function showQR(){
-  const url=S.deckUrl||location.href;
-  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
-  openModal('スマホで開く',`
-    <div id="qr-area">
-      <img src="${qrUrl}" alt="QR Code">
-      <p>スマホのカメラでQRコードを読み込むと<br>同じデッキでシミュレーターが開きます</p>
-    </div>
-    <button class="mb" onclick="navigator.clipboard.writeText('${url}').then(()=>toast('URLをコピーしました'))">URLをコピー</button>
-    <button class="mb cancel" onclick="closeModal()">閉じる</button>
-  `);
-}
-
-// ============================================================
 // INIT
 // ============================================================
 document.getElementById('btn-start').addEventListener('click',startGame);
 setupBench();
 render();
-
-// URLパラメータからデッキ読み込み
-if(!loadFromURL()){
-  // Chrome拡張からも試みる（chrome-extension://で開かれた場合）
-  if(typeof chrome!=='undefined'&&chrome.storage){
-    chrome.storage.local.get('pokeca_deck_data',result=>{
-      const data=result?.pokeca_deck_data;
-      if(data?.cards?.length){
-        S.deck=data.cards.map(c=>({uid:uid(),name:c.n||c.name,supertype:c.t||c.supertype||'Pokémon',imageUrl:c.i||c.imageUrl||null,_zone:'deck'}));
-        S.deck=shuffle(S.deck);resetField();
-        document.getElementById('btn-start').disabled=false;
-        document.getElementById('btn-qr').style.display='';
-        closeWelcome();render();toast(`${S.deck.length}枚のデッキを読み込みました`);
-      }
-    });
-  }
-}
+loadFromURL();
 </script>
 </body>
 </html>
