@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ポケカ一人回し</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f7f0;--s1:#fff;--s2:#e8f5e9;--s3:#c8e6c9;
+  --bd:#a5d6a7;--bd2:#66bb6a;
+  --acc:#1b5e20;--acc2:#2e7d32;--acc3:#43a047;
+  --tx:#1b2e1b;--tx2:#3d5a3d;--tx3:#6a8f6a;
+  --rd:#c62828;--pu:#6a1b9a;
+  --cw:72px;--ch:100px;
+  --shadow:0 2px 6px rgba(0,0,0,0.15);
+  --line:rgba(255,255,255,0.65);
+}
+html,body{height:100%;color:var(--tx);font-family:'Hiragino Kaku Gothic Pro','Noto Sans JP',sans-serif;font-size:14px;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* HEADER */
+#hdr{background:var(--acc);color:#fff;padding:4px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;height:40px;box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+#hdr h1{font-size:14px;font-weight:700;white-space:nowrap}
+.hbtn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:12px;white-space:nowrap}
+.hbtn:hover{background:rgba(255,255,255,0.25)}
+.hbtn:disabled{opacity:.4;cursor:not-allowed}
+.hbtn.go{background:#fff;color:var(--acc);font-weight:700}
+.badge{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.22);padding:2px 8px;border-radius:4px;font-size:12px;color:rgba(255,255,255,0.9)}
+.badge b{color:#fff;font-weight:700}
+
+/* PLAYMAT */
+#playmat{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 38%,#56b856 0%,#3d8c3d 60%,#2a6020 100%);
+  position:relative;
+}
+#playmat::before{content:'';position:absolute;top:32%;left:50%;transform:translate(-50%,-50%);width:240px;height:240px;border-radius:50%;border:6px solid var(--line);opacity:.12;pointer-events:none;z-index:0;}
+#playmat::after{content:'';position:absolute;top:32%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;border:6px solid var(--line);opacity:.12;pointer-events:none;z-index:0;}
+
+/*
+  レイアウト:
+  左列(120px): サイド / トラッシュ
+  中央(1fr):   バトル場 [フリー] [スタジアム]
+  右列(120px): デッキ / コイン
+*/
+#field{flex:1;display:grid;grid-template-rows:1fr auto;padding:6px;gap:5px;position:relative;z-index:1;min-height:0;}
+#field-top{
+  display:grid;
+  grid-template-columns:120px 1fr 120px;
+  gap:6px;min-height:0;
+}
+
+/* 共通 */
+.mat-label{font-size:10px;font-weight:700;color:var(--line);text-transform:uppercase;letter-spacing:.07em;text-align:center;flex-shrink:0}
+.mat-btn{background:rgba(0,0,0,0.22);border:1px solid var(--line);color:rgba(255,255,255,.9);padding:4px;border-radius:5px;cursor:pointer;font-size:11px;width:100%;font-weight:600;flex-shrink:0;margin-top:2px}
+.mat-btn:hover{background:rgba(0,0,0,.4)}
+.trbtn{background:rgba(150,0,0,0.35);border:1px solid rgba(255,120,120,.4);color:rgba(255,200,200,.95);padding:4px;border-radius:5px;cursor:pointer;font-size:11px;width:100%;font-weight:600;flex-shrink:0;margin-top:2px}
+.trbtn:hover{background:rgba(150,0,0,.6)}
+
+/* ===== 左列: サイド / トラッシュ ===== */
+#col-left{display:flex;flex-direction:column;gap:5px;min-height:0;}
+
+#side-zone{border:2px solid var(--line);border-radius:8px;background:rgba(0,0,0,0.13);padding:5px;display:flex;flex-direction:column;gap:3px;flex:0 0 auto;}
+#cards-side{display:grid;grid-template-columns:1fr 1fr;gap:3px;align-content:start;}
+#cards-side .card{width:100%;height:64px}
+
+#trash-zone{border:2px solid var(--line);border-radius:8px;background:rgba(0,0,0,0.13);padding:5px;display:flex;flex-direction:column;gap:3px;flex:1;min-height:0;}
+#trash-top{display:flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;min-height:56px}
+.trash-pile{width:50px;height:70px;border-radius:6px;background:linear-gradient(145deg,#5a2020,#3a1010);border:1.5px solid rgba(255,120,120,.4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:2px 2px 0 rgba(0,0,0,.3);flex-shrink:0;}
+.trash-pile .pcnt{font-size:15px;font-weight:700;color:#ffaaaa;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.trash-pile .plbl{font-size:8px;color:rgba(255,170,170,.7)}
+#trash-recent{display:flex;flex-wrap:wrap;gap:3px;align-content:start;flex:1;min-height:0;overflow-y:auto;padding:1px;}
+#trash-recent::-webkit-scrollbar{width:3px}
+#trash-recent::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px}
+#trash-recent .card{width:42px;height:58px}
+
+/* ===== 中央: バトル場 + フリー + スタジアム ===== */
+#col-center{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:6px;padding:0 6px;}
+
+/* フリーゾーン（左寄り：バトルとデッキの間） */
+#free-wrap{display:flex;flex-direction:column;gap:3px;width:90px;flex-shrink:0;}
+#free-zone{border:2px dashed rgba(255,255,255,.45);border-radius:8px;background:rgba(255,255,255,0.07);padding:4px;display:flex;flex-direction:column;gap:2px;flex:1;min-height:100px;}
+#cards-free{display:flex;flex-wrap:wrap;gap:3px;align-content:start;overflow-y:auto;min-height:60px;padding:1px;}
+#cards-free::-webkit-scrollbar{width:3px}
+#cards-free::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px}
+#cards-free .card{width:42px;height:58px}
+
+/* バトル場（中央） */
+#battle-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;}
+.zone-title{font-size:10px;font-weight:700;color:var(--line);text-transform:uppercase;letter-spacing:.07em;text-align:center}
+#bslot{
+  width:200px;border:2px solid var(--line);border-radius:12px;
+  background:rgba(255,255,255,0.1);padding:8px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+#bslot.occ{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.9)}
+
+/* ポケモンスタック（進化用） */
+.pokemon-stack{position:relative;min-height:100px;width:100%;display:flex;justify-content:center;align-items:flex-end;}
+.pokemon-stack .card{position:absolute;bottom:0;transition:transform .15s;}
+/* スタックの各カードを上にずらして下が見えるように */
+
+.energy-area{width:100%;background:rgba(0,0,0,0.13);border:1px dashed rgba(255,255,255,.35);border-radius:6px;padding:4px;min-height:32px;display:flex;flex-wrap:wrap;gap:3px;}
+.area-label{font-size:8px;color:rgba(255,255,255,.65);width:100%;margin-bottom:1px;font-weight:600}
+.energy-area .card,.tool-area .card{width:34px;height:48px}
+.tool-area{width:100%;background:rgba(0,0,0,0.09);border:1px dashed rgba(180,220,255,.35);border-radius:6px;padding:4px;min-height:28px;display:flex;flex-wrap:wrap;gap:3px;}
+.status-markers{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;width:100%}
+.smark{padding:3px 4px;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;border:none}
+.smark.off{background:rgba(255,255,255,.14);color:rgba(255,255,255,.55)}
+.smark.やけど{background:#c62828;color:#fff}
+.smark.どく{background:#6a1b9a;color:#fff}
+.smark.ねむり{background:#1565c0;color:#fff}
+.smark.まひ{background:#e65100;color:#fff}
+.smark.こんらん{background:#880e4f;color:#fff}
+
+/* スタジアム（右寄り：バトルとトラッシュの間） */
+#stad-wrap{display:flex;flex-direction:column;gap:3px;width:90px;flex-shrink:0;}
+#stad-zone{border:2px dashed rgba(206,147,216,.6);border-radius:8px;background:rgba(106,27,154,.18);padding:4px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:100px;}
+#stad-zone .mat-label{color:rgba(206,147,216,.9)}
+#cards-stadium{display:flex;align-items:center;justify-content:center;min-height:60px;width:100%}
+#cards-stadium .card{width:54px;height:76px}
+
+/* ===== 右列: デッキ / コイン ===== */
+#col-right{display:flex;flex-direction:column;gap:5px;align-items:center;min-height:0;}
+#deck-zone{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;width:100%}
+.dpile{
+  width:var(--cw);height:var(--ch);border-radius:8px;
+  background:linear-gradient(145deg,#1a3a6e,#0d1f3c);
+  border:2px solid rgba(150,190,255,.5);
+  cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;
+  flex-shrink:0;box-shadow:4px 4px 0 rgba(0,0,0,.3);
+}
+.dpile:hover{transform:translateY(-2px)}
+.dpile .pcnt{font-size:22px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.dpile .plbl{font-size:9px;color:rgba(255,255,255,.7)}
+.rdeck-btns{display:flex;flex-direction:column;gap:3px;width:100%}
+.rdb{background:rgba(0,0,0,.22);border:1px solid var(--line);color:rgba(255,255,255,.88);padding:4px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:500;text-align:center;}
+.rdb:hover{background:rgba(0,0,0,.4)}
+#coin-zone{width:100%;text-align:center;border:1px solid var(--line);border-radius:7px;background:rgba(0,0,0,.12);padding:5px;flex-shrink:0;}
+.coin-result{font-size:26px;min-height:32px;margin:2px 0}
+.coin-btn{background:rgba(0,0,0,.22);border:1px solid var(--line);color:rgba(255,255,255,.9);padding:4px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700;width:100%;}
+.coin-btn:hover{background:rgba(0,0,0,.4)}
+.coin-hist{font-size:10px;color:rgba(255,255,255,.55);min-height:14px;margin-top:2px}
+@keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.flipping{animation:flip .3s ease}
+
+/* ===== ベンチ ===== */
+#field-bottom{display:flex;flex-direction:column;gap:3px;}
+#bench-row{display:flex;align-items:flex-start;gap:5px;position:relative;}
+#bench-row::before{content:'';position:absolute;top:-4px;left:0;right:0;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0,var(--line) 16px,transparent 16px,transparent 26px);opacity:.5;}
+.bench-lbl{font-size:10px;font-weight:700;color:var(--line);text-transform:uppercase;white-space:nowrap;align-self:center;background:rgba(0,0,0,.2);padding:3px 5px;border-radius:4px;flex-shrink:0}
+#bench-slots{display:flex;gap:5px;flex:1;justify-content:center}
+.bnslot{
+  background:rgba(0,0,0,.13);border:2px dashed rgba(255,255,255,.38);border-radius:9px;
+  padding:5px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  flex:1;max-width:130px;min-width:90px;
+}
+.bnslot.occ{border-style:solid;border-color:rgba(255,255,255,.75);background:rgba(255,255,255,.13)}
+.snum{font-size:9px;color:rgba(255,255,255,.55);font-weight:600}
+.bnslot .energy-area .card,.bnslot .tool-area .card{width:28px;height:40px}
+.bnslot .energy-area{background:rgba(0,0,0,.08);min-height:26px}
+.bnslot .tool-area{background:rgba(0,0,0,.06);min-height:22px}
+.swpbtn{background:rgba(46,125,50,.55);color:#fff;border:1px solid rgba(255,255,255,.28);padding:3px 6px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:600;}
+.swpbtn:hover{background:rgba(46,125,50,.85)}
+/* ベンチ個別トラッシュ */
+.bn-trbtn{background:rgba(150,0,0,0.3);border:1px solid rgba(255,120,120,.35);color:rgba(255,200,200,.9);padding:2px 4px;border-radius:4px;cursor:pointer;font-size:9px;font-weight:600;}
+.bn-trbtn:hover{background:rgba(150,0,0,.55)}
+
+/* ===== 手札 ===== */
+#hand-area{background:rgba(255,255,255,.97);border-top:3px solid rgba(0,0,0,.2);padding:5px 10px;flex-shrink:0;}
+#hand-head{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ht{font-size:11px;color:var(--acc2);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.hc{color:var(--acc3);font-weight:700;font-size:12px;background:var(--s2);padding:1px 7px;border-radius:10px}
+.hb{background:var(--s2);border:1px solid var(--bd);color:var(--tx2);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px}
+.hb:hover{background:var(--s3)}
+.hb.red{background:#fff0f0;border-color:#ffcdd2;color:#c62828;}
+.hb.red:hover{background:#ffcdd2}
+#cards-hand{display:flex;flex-wrap:nowrap;gap:5px;overflow-x:auto;min-height:104px;align-items:flex-start;padding:2px}
+#cards-hand::-webkit-scrollbar{height:4px}
+#cards-hand::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+/* CARDS */
+.card{width:var(--cw);height:var(--ch);border-radius:7px;border:1.5px solid var(--bd);cursor:grab;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;overflow:hidden;background:var(--s2);flex-shrink:0;transition:transform .1s,box-shadow .1s;box-shadow:var(--shadow);}
+.card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.28)}
+.card:active{cursor:grabbing}
+.card.dragging{opacity:.4;transform:scale(.93);pointer-events:none}
+.drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:.88;transform:scale(1.1);box-shadow:0 10px 28px rgba(0,0,0,.3);border-radius:7px}
+.cimg{width:100%;height:100%;object-fit:cover;display:block;border-radius:5px}
+.cph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px}
+.card.pokemon{border-color:#ef9a9a}
+.card.energy{border-color:#a5d6a7}
+.card.trainer{border-color:#ce93d8}
+.card.fd{background:linear-gradient(145deg,#1a3a6e,#0d1f3c);border-color:#3a5fa0;cursor:pointer}
+.card.fd::after{content:'';position:absolute;inset:4px;border:1px solid rgba(255,255,255,.15);border-radius:5px}
+.drop-target{outline:3px dashed rgba(255,255,255,.9);outline-offset:2px;background:rgba(255,255,255,.12)!important}
+
+/* 進化スタック */
+.poke-stack-wrap{position:relative;width:100%;display:flex;justify-content:center;}
+.poke-stack-wrap .card{position:absolute;left:50%;transform:translateX(-50%);}
+
+/* MODAL */
+#mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:flex-end;justify-content:center}
+#mbg.open{display:flex}
+#mbox{background:var(--s1);border-radius:18px 18px 0 0;padding:16px;width:100%;max-width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+#mbox h3{font-size:15px;color:var(--acc);margin-bottom:6px;font-weight:700}
+.modal-handle{width:40px;height:4px;background:var(--bd2);border-radius:2px;margin:0 auto 14px}
+.mb{display:block;width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:13px 16px;border-radius:9px;cursor:pointer;text-align:left;font-size:14px;margin-bottom:7px;font-weight:500}
+.mb:hover{background:var(--s3)}
+.mb.cancel{color:var(--tx3);background:var(--bg)}
+.mb.red{color:#c62828;background:#fff5f5}
+.mb.go{background:var(--acc2);color:#fff;font-weight:700;border-color:var(--acc2)}
+#deck-grid{display:flex;flex-wrap:wrap;gap:5px;max-height:360px;overflow-y:auto;margin-bottom:10px;padding:5px;background:var(--bg);border-radius:9px}
+#deck-input-area{display:flex;flex-direction:column;gap:10px}
+#deck-input-area input{background:var(--s2);border:1.5px solid var(--bd2);color:var(--tx);padding:11px;border-radius:9px;font-size:15px;width:100%}
+.input-hint{font-size:12px;color:var(--tx3);line-height:1.7;padding:10px;background:var(--s2);border-radius:7px}
+.input-hint b{color:var(--tx2)}
+
+/* TOAST/LOADING */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--acc);color:#fff;padding:9px 20px;border-radius:22px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:2000;white-space:nowrap;max-width:90vw;box-shadow:0 4px 14px rgba(0,0,0,.2);font-weight:600}
+#toast.show{opacity:1}
+#loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:3000;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+#loading.open{display:flex}
+.spin{width:40px;height:40px;border:3px solid var(--bd);border-top-color:var(--acc2);border-radius:50%;animation:sp .75s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#lmsg{font-size:14px;color:var(--tx2);text-align:center;padding:0 20px;font-weight:500}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hdr">
+    <h1>🃏 POKÉCA SOLO</h1>
+    <button class="hbtn" onclick="showDeckInput()">📋 デッキ読み込み</button>
+    <button class="hbtn go" id="btn-start" disabled>ゲーム開始 / 引き直し</button>
+    <button class="hbtn" onclick="doReset()">↺ リセット</button>
+    <div style="flex:1"></div>
+    <div class="badge">サイド <b id="hpr">6</b></div>
+    <div class="badge">T<b id="htr">0</b></div>
+    <button class="hbtn" onclick="nextTurn()">+ターン</button>
+  </div>
+
+  <div id="playmat">
+    <div id="field">
+      <div id="field-top">
+
+        <!-- 左列: サイド / トラッシュ -->
+        <div id="col-left">
+          <div id="side-zone">
+            <div class="mat-label">サイド <span id="cnt-side">0</span></div>
+            <div id="cards-side"></div>
+            <button class="mat-btn" onclick="takePrize()">1枚取る</button>
+          </div>
+          <div id="trash-zone" data-dropzone="trash">
+            <div class="mat-label">トラッシュ <span id="cnt-trash">0</span></div>
+            <div id="trash-top"></div>
+            <div id="trash-recent"></div>
+            <button class="mat-btn" onclick="sortZone('trash')">並替</button>
+          </div>
+        </div>
+
+        <!-- 中央: フリー / バトル場 / スタジアム -->
+        <div id="col-center">
+
+          <!-- フリーゾーン（バトルとデッキの間 = 左寄り） -->
+          <div id="free-wrap">
+            <div class="zone-title">フリー</div>
+            <div id="free-zone" data-dropzone="free">
+              <div id="cards-free"></div>
+            </div>
+          </div>
+
+          <!-- バトル場（中央） -->
+          <div id="battle-wrap">
+            <div class="zone-title">バトル場</div>
+            <div id="bslot">
+              <!-- ポケモンスタック（進化） -->
+              <div class="poke-stack-wrap" id="bp-wrap" style="min-height:104px"></div>
+              <div class="energy-area" id="ba-energy"><div class="area-label">エネルギー</div></div>
+              <div class="tool-area" id="ba-tool"><div class="area-label">どうぐ</div></div>
+              <div class="status-markers" id="battle-markers">
+                <button class="smark off" data-status="やけど" onclick="toggleStatus('やけど')">🔥</button>
+                <button class="smark off" data-status="どく" onclick="toggleStatus('どく')">☠</button>
+                <button class="smark off" data-status="ねむり" onclick="toggleStatus('ねむり')">💤</button>
+                <button class="smark off" data-status="まひ" onclick="toggleStatus('まひ')">⚡</button>
+                <button class="smark off" data-status="こんらん" onclick="toggleStatus('こんらん')">😵</button>
+              </div>
+            </div>
+            <button class="trbtn" style="width:200px" onclick="trashZone('battle')">🗑 バトル場を全トラッシュ</button>
+          </div>
+
+          <!-- スタジアム（バトルとトラッシュの間 = 右寄り） -->
+          <div id="stad-wrap">
+            <div class="zone-title" style="color:rgba(206,147,216,.9)">スタジアム <span id="cnt-stadium">0</span></div>
+            <div id="stad-zone">
+              <div id="cards-stadium"></div>
+            </div>
+          </div>
+
+        </div><!-- /col-center -->
+
+        <!-- 右列: デッキ / コイン -->
+        <div id="col-right">
+          <div id="deck-zone">
+            <div class="mat-label">デッキ <span id="cnt-deck">0</span></div>
+            <div class="dpile" onclick="showDeckMenu()">
+              <div class="pcnt" id="pile-cnt">0</div>
+              <div class="plbl">枚</div>
+            </div>
+            <div class="rdeck-btns">
+              <button class="rdb" onclick="drawOne()">1枚ドロー</button>
+              <button class="rdb" onclick="shuffleDeck()">シャッフル</button>
+              <button class="rdb" onclick="viewDeck()">デッキを見る</button>
+            </div>
+          </div>
+          <div id="coin-zone">
+            <div class="mat-label">コイン</div>
+            <div class="coin-result" id="coin-result">🪙</div>
+            <button class="coin-btn" onclick="flipCoin()">投げる</button>
+            <div class="coin-hist" id="coin-hist"></div>
+          </div>
+        </div>
+
+      </div><!-- /field-top -->
+
+      <!-- ベンチ -->
+      <div id="field-bottom">
+        <div id="bench-row">
+          <div class="bench-lbl">ベンチ</div>
+          <div id="bench-slots"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手札 -->
+    <div id="hand-area" data-dropzone="hand">
+      <div id="hand-head">
+        <span class="ht">手札</span>
+        <span class="hc" id="cnt-hand">0</span>
+        <button class="hb" onclick="sortZone('hand')">並替</button>
+        <button class="hb" onclick="returnHandToDeck()">デッキに戻す</button>
+        <button class="hb red" onclick="trashZone('hand')">🗑 全トラッシュ</button>
+      </div>
+      <div id="cards-hand"></div>
+    </div>
+  </div>
+</div>
+
+<div id="mbg" onclick="closeModal()">
+  <div id="mbox" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h3 id="mtitle">メニュー</h3>
+    <div id="mbody"></div>
+  </div>
+</div>
+<div id="loading"><div class="spin"></div><div id="lmsg">読み込み中...</div></div>
+<div id="toast"></div>
+
+<script>
+const WORKER='https://shiny-mud-d562.84shingen.workers.dev';
+let _uid=0;const uid=()=>++_uid;
+
+// ゲーム状態（pokemonを配列に変更→進化スタック対応）
+const S={
+  deck:[],hand:[],side:[],trash:[],stadium:[],free:[],
+  battle:{pokemons:[],energy:[],tools:[],statuses:new Set()},
+  bench:Array(5).fill(0).map(()=>({pokemons:[],energy:[],tools:[],statuses:new Set()})),
+  turn:0,gameStarted:false
+};
+
+// DRAG & DROP
+let dragCard=null,dragFrom=null,ghostEl=null;
+function startDrag(card,el,e){
+  dragCard=card;dragFrom=card._zone;
+  el.classList.add('dragging');
+  ghostEl=el.cloneNode(true);
+  ghostEl.className=el.className.replace('dragging','')+' drag-ghost';
+  ghostEl.style.width=el.offsetWidth+'px';ghostEl.style.height=el.offsetHeight+'px';
+  document.body.appendChild(ghostEl);moveGhost(e);
+}
+function moveGhost(e){
+  if(!ghostEl)return;
+  const x=(e.clientX||e.touches?.[0]?.clientX||0)-30;
+  const y=(e.clientY||e.touches?.[0]?.clientY||0)-42;
+  ghostEl.style.left=x+'px';ghostEl.style.top=y+'px';
+}
+function endDrag(e){
+  if(!dragCard)return;
+  document.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));
+  document.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'));
+  if(ghostEl){ghostEl.remove();ghostEl=null;}
+  const x=e.clientX||e.changedTouches?.[0]?.clientX||0;
+  const y=e.clientY||e.changedTouches?.[0]?.clientY||0;
+  const target=document.elementFromPoint(x,y);
+  if(!target){dragCard=null;dragFrom=null;return;}
+  const zone=target.closest('[data-dropzone]');
+  if(zone){const to=zone.dataset.dropzone;const si=zone.dataset.si!=null?parseInt(zone.dataset.si):undefined;moveCard(dragCard.uid,dragFrom,to,si);}
+  dragCard=null;dragFrom=null;
+}
+document.addEventListener('mousemove',e=>{if(dragCard)moveGhost(e);});
+document.addEventListener('mouseup',e=>{if(dragCard)endDrag(e);});
+document.addEventListener('touchmove',e=>{if(dragCard)moveGhost(e);},{passive:true});
+document.addEventListener('touchend',e=>{if(dragCard)endDrag(e);});
+document.addEventListener('mousemove',e=>{
+  if(!dragCard)return;
+  document.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'));
+  document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-dropzone]')?.classList.add('drop-target');
+});
+
+// UTILS
+function toast(msg,d=2200){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),d);}
+function loading(msg){document.getElementById('lmsg').textContent=msg||'読み込み中...';document.getElementById('loading').classList.add('open');}
+function unload(){document.getElementById('loading').classList.remove('open');}
+function openModal(title,body){document.getElementById('mtitle').textContent=title;document.getElementById('mbody').innerHTML=body;document.getElementById('mbg').classList.add('open');}
+function closeModal(){document.getElementById('mbg').classList.remove('open');}
+function typeClass(st){if(!st)return'';const s=st.toLowerCase();if(s[0]==='p')return'pokemon';if(s[0]==='e')return'energy';if(s[0]==='t')return'trainer';return'';}
+function typeEmoji(st){const c=typeClass(st);return c==='pokemon'?'⚡':c==='energy'?'⬡':c==='trainer'?'♟':'🃏';}
+function isEnergy(c){return typeClass(c.supertype)==='energy';}
+function isPokemon(c){return typeClass(c.supertype)==='pokemon';}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// COIN
+let coinHist=[];
+function flipCoin(){
+  const r=document.getElementById('coin-result');
+  r.classList.remove('flipping');void r.offsetWidth;r.classList.add('flipping');
+  setTimeout(()=>{
+    const h=Math.random()<.5;r.textContent=h?'⭕':'❌';
+    coinHist.unshift(h?'⭕':'❌');if(coinHist.length>5)coinHist.pop();
+    document.getElementById('coin-hist').textContent=coinHist.join(' ');
+    toast(h?'おもて！':'うら！');
+  },150);
+}
+
+// STATUS
+function toggleStatus(status){
+  if(S.battle.statuses.has(status))S.battle.statuses.delete(status);
+  else S.battle.statuses.add(status);
+  renderStatusMarkers();
+  toast(S.battle.statuses.has(status)?`${status}になった`:`${status}が回復した`);
+}
+function renderStatusMarkers(){
+  document.getElementById('battle-markers')?.querySelectorAll('.smark').forEach(btn=>{
+    const st=btn.dataset.status;btn.className='smark '+(S.battle.statuses.has(st)?st:'off');
+  });
+}
+
+// DECK INPUT
+function showDeckInput(){
+  openModal('デッキを読み込む',`
+    <div id="deck-input-area">
+      <div class="input-hint"><b>公式デッキコード（XXXX-XXXX-XXXX）を入力</b></div>
+      <input id="deck-code-field" type="text" placeholder="例: NHLngn-GoqcNM-n9gNgn" autocomplete="off">
+      <button class="mb go" onclick="loadByDeckCode()">デッキコードで読み込む</button>
+      <button class="mb cancel" onclick="closeModal()">閉じる</button>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('deck-code-field')?.focus(),100);
+}
+async function loadByDeckCode(){
+  const code=document.getElementById('deck-code-field').value.trim();
+  if(!code){toast('デッキコードを入力してください');return;}
+  if(!/^[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+$/.test(code)){toast('形式が違います');return;}
+  closeModal();loading('デッキコードを解析中...');
+  try{
+    document.getElementById('lmsg').textContent='カードデータを取得中...';
+    const res=await fetch(`${WORKER}?code=${encodeURIComponent(code)}`);
+    const data=await res.json();
+    if(data.error){unload();toast('エラー: '+data.error);return;}
+    if(!data.cards?.length){unload();toast('カードが取得できませんでした');return;}
+    const cards=[];
+    data.cards.forEach(c=>{for(let i=0;i<c.count;i++)cards.push({uid:uid(),name:c.name||'不明',supertype:c.supertype||'Pokémon',imageUrl:c.imageUrl||null,_zone:'deck'});});
+    fullReset(cards);document.getElementById('btn-start').disabled=false;
+    unload();render();toast(`${cards.length}枚のデッキを読み込みました！`);
+  }catch(e){unload();toast('通信エラー: '+e.message);}
+}
+function loadFromURL(){
+  const params=new URLSearchParams(location.search);const data=params.get('d');if(!data)return false;
+  try{
+    const decoded=JSON.parse(decodeURIComponent(atob(data)));
+    if(!decoded?.cards?.length)return false;
+    loading('デッキデータを読み込み中...');
+    setTimeout(()=>{
+      const cards=decoded.cards.map(c=>({uid:uid(),name:c.n||c.name||'不明',supertype:c.t==='P'?'Pokémon':c.t==='E'?'Energy':c.t==='T'?'Trainer':(c.supertype||'Pokémon'),imageUrl:c.i||c.imageUrl||null,_zone:'deck'}));
+      fullReset(cards);document.getElementById('btn-start').disabled=false;unload();render();toast(`${S.deck.length}枚読み込みました`);
+    },300);return true;
+  }catch(e){return false;}
+}
+
+// GAME
+function collectAllCards(){
+  const all=[
+    ...S.deck,...S.hand,...S.side,...S.trash,...S.stadium,...S.free,
+    ...S.battle.pokemons,...S.battle.energy,...S.battle.tools,
+    ...S.bench.flatMap(b=>[...b.pokemons,...b.energy,...b.tools])
+  ];
+  all.forEach(c=>c._zone='deck');return shuffle(all);
+}
+function resetField(){
+  S.hand=[];S.side=[];S.trash=[];S.stadium=[];S.free=[];
+  S.battle={pokemons:[],energy:[],tools:[],statuses:new Set()};
+  S.bench=Array(5).fill(0).map(()=>({pokemons:[],energy:[],tools:[],statuses:new Set()}));
+  S.turn=0;S.gameStarted=false;renderStatusMarkers();
+}
+function fullReset(newDeck){S.deck=shuffle(newDeck||[]);resetField();}
+function startGame(){
+  S.deck=collectAllCards();
+  if(S.deck.length<13){toast('デッキが不足しています');return;}
+  resetField();S.deck=shuffle(S.deck);
+  S.hand=S.deck.splice(0,7);S.hand.forEach(c=>c._zone='hand');
+  S.side=S.deck.splice(0,6);S.side.forEach(c=>c._zone='side');
+  S.gameStarted=true;render();toast('手札7枚・サイド6枚を配りました');
+}
+function doReset(){
+  S.deck=collectAllCards();resetField();
+  document.getElementById('btn-start').disabled=S.deck.length===0;
+  render();toast('リセットしました');
+}
+function trashZone(zone,si){
+  if(zone==='hand'){
+    const cnt=S.hand.length;if(!cnt){toast('手札がありません');return;}
+    S.hand.forEach(c=>{c._zone='trash';S.trash.push(c);});S.hand=[];
+    render();toast(`手札${cnt}枚をトラッシュ`);
+  }else if(zone==='battle'){
+    const cards=[...S.battle.pokemons,...S.battle.energy,...S.battle.tools];
+    if(!cards.length){toast('バトル場にカードがありません');return;}
+    cards.forEach(c=>{c._zone='trash';S.trash.push(c);});
+    S.battle={pokemons:[],energy:[],tools:[],statuses:new Set()};
+    render();renderStatusMarkers();toast(`バトル場${cards.length}枚をトラッシュ`);
+  }else if(zone==='bench-single'){
+    // 個別ベンチトラッシュ
+    const b=S.bench[si];
+    const cards=[...b.pokemons,...b.energy,...b.tools];
+    if(!cards.length){toast('このベンチにカードがありません');return;}
+    cards.forEach(c=>{c._zone='trash';S.trash.push(c);});
+    S.bench[si]={pokemons:[],energy:[],tools:[],statuses:new Set()};
+    render();toast(`ベンチ${si+1}を${cards.length}枚トラッシュ`);
+  }
+}
+function drawOne(){if(!S.deck.length){toast('デッキが空です');return;}const c=S.deck.shift();c._zone='hand';S.hand.push(c);render();toast('ドロー: '+c.name);}
+function shuffleDeck(){S.deck=shuffle(S.deck);render();toast('シャッフルしました');}
+function viewDeck(){
+  let h='<div id="deck-grid">';
+  if(!S.deck.length)h+='<div style="color:var(--tx3);padding:20px;font-size:12px;width:100%;text-align:center">デッキが空です</div>';
+  else S.deck.forEach(c=>{
+    const imgEl=c.imageUrl?`<img src="${c.imageUrl}" alt="${c.name}" style="width:56px;height:78px;border-radius:6px;object-fit:cover;border:1.5px solid var(--bd)" onerror="this.style.display='none'">`:`<div style="width:56px;height:78px;border-radius:6px;background:var(--s2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:20px">${typeEmoji(c.supertype)}</div>`;
+    h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer" onclick="sendToFree(${c.uid},'deck')" title="${c.name}">${imgEl}<div style="font-size:8px;color:var(--tx3);max-width:56px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center">${c.name}</div></div>`;
+  });
+  h+='</div><p style="font-size:12px;color:var(--tx3);margin-bottom:10px">💡 クリックでフリーゾーンに送ります</p><button class="mb cancel" onclick="closeModal()">閉じる</button>';
+  openModal(`デッキ (${S.deck.length}枚)`,h);
+}
+function viewTrash(){
+  let h='<div id="deck-grid">';
+  if(!S.trash.length)h+='<div style="color:var(--tx3);padding:20px;font-size:12px;width:100%;text-align:center">トラッシュが空です</div>';
+  else S.trash.forEach(c=>{
+    const imgEl=c.imageUrl?`<img src="${c.imageUrl}" alt="${c.name}" style="width:56px;height:78px;border-radius:6px;object-fit:cover;border:1.5px solid var(--bd)" onerror="this.style.display='none'">`:`<div style="width:56px;height:78px;border-radius:6px;background:var(--s2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:20px">${typeEmoji(c.supertype)}</div>`;
+    h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer" onclick="sendToFree(${c.uid},'trash')" title="${c.name}">${imgEl}<div style="font-size:8px;color:var(--tx3);max-width:56px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center">${c.name}</div></div>`;
+  });
+  h+='</div><p style="font-size:12px;color:var(--tx3);margin-bottom:10px">💡 クリックでフリーゾーンに送ります</p><button class="mb cancel" onclick="closeModal()">閉じる</button>';
+  openModal(`トラッシュ (${S.trash.length}枚)`,h);
+}
+window.sendToFree=function(cardUid,fromZone){
+  moveCard(cardUid,fromZone,'free');
+  if(fromZone==='deck')viewDeck();else viewTrash();
+  toast('フリーゾーンに送りました');
+};
+function showDeckMenu(){
+  openModal('デッキ操作',`
+    <button class="mb" onclick="closeModal();drawOne()">1枚ドロー</button>
+    <button class="mb" onclick="closeModal();shuffleDeck()">シャッフル</button>
+    <button class="mb" onclick="closeModal();viewDeck()">デッキを見る（クリックでフリーへ）</button>
+    <button class="mb cancel" onclick="closeModal()">閉じる</button>
+  `);
+}
+function takePrize(){if(!S.side.length){toast('サイドが空です');return;}const c=S.side.shift();c._zone='hand';S.hand.push(c);render();toast('サイドを取りました');}
+function returnHandToDeck(){S.hand.forEach(c=>c._zone='deck');S.deck.push(...S.hand);S.hand=[];S.deck=shuffle(S.deck);render();toast('手札をデッキに戻してシャッフルしました');}
+function sortZone(zone){
+  const o=st=>{const c=typeClass(st);return c==='pokemon'?0:c==='trainer'?1:c==='energy'?2:3;};
+  const fn=(a,b)=>o(a.supertype)-o(b.supertype)||a.name.localeCompare(b.name,'ja');
+  if(zone==='hand')S.hand.sort(fn);else if(zone==='trash')S.trash.sort(fn);
+  render();toast('並び替えました');
+}
+function swapBenchBattle(i){
+  const b=S.bench[i],bt=S.battle;
+  const tmp={pokemons:[...bt.pokemons],energy:[...bt.energy],tools:[...bt.tools],statuses:new Set(bt.statuses)};
+  bt.pokemons=[...b.pokemons];bt.energy=[...b.energy];bt.tools=[...b.tools];bt.statuses=new Set(b.statuses);
+  b.pokemons=tmp.pokemons;b.energy=tmp.energy;b.tools=tmp.tools;b.statuses=tmp.statuses;
+  const setZone=(slot,z)=>{slot.pokemons.forEach(c=>c._zone=z);slot.energy.forEach(c=>c._zone=z);slot.tools.forEach(c=>c._zone=z);};
+  setZone(bt,'battle');setZone(b,`bench-${i}`);
+  render();renderStatusMarkers();toast('バトル場とベンチを入れ替えました');
+}
+function nextTurn(){S.turn++;render();toast(`ターン ${S.turn}`);}
+
+// MOVE CARD（pokemonをpokemonsスタックに変更）
+window.moveCard=function(cardUid,from,to,si){
+  let card=null;
+  function rem(zone){
+    const zones={hand:S.hand,deck:S.deck,trash:S.trash,side:S.side,stadium:S.stadium,free:S.free};
+    if(zones[zone]){const i=zones[zone].findIndex(c=>c.uid===cardUid);if(i>=0)card=zones[zone].splice(i,1)[0];return;}
+    if(zone==='battle'){
+      let i=S.battle.pokemons.findIndex(c=>c.uid===cardUid);if(i>=0){card=S.battle.pokemons.splice(i,1)[0];return;}
+      i=S.battle.energy.findIndex(c=>c.uid===cardUid);if(i>=0){card=S.battle.energy.splice(i,1)[0];return;}
+      i=S.battle.tools.findIndex(c=>c.uid===cardUid);if(i>=0){card=S.battle.tools.splice(i,1)[0];return;}
+    }
+    if(zone?.startsWith('bench-')){
+      const idx=parseInt(zone.split('-')[1]);const b=S.bench[idx];
+      let i=b.pokemons.findIndex(c=>c.uid===cardUid);if(i>=0){card=b.pokemons.splice(i,1)[0];return;}
+      i=b.energy.findIndex(c=>c.uid===cardUid);if(i>=0){card=b.energy.splice(i,1)[0];return;}
+      i=b.tools.findIndex(c=>c.uid===cardUid);if(i>=0){card=b.tools.splice(i,1)[0];return;}
+    }
+  }
+  rem(from);if(!card)return;
+  const place=(slot,zone)=>{
+    card._zone=zone;
+    if(isPokemon(card))slot.pokemons.push(card); // スタックの一番上に追加
+    else if(isEnergy(card))slot.energy.push(card);
+    else slot.tools.push(card);
+  };
+  if(to==='hand'){card._zone='hand';S.hand.push(card);}
+  else if(to==='deck'){card._zone='deck';S.deck.push(card);S.deck=shuffle(S.deck);}
+  else if(to==='trash'){card._zone='trash';S.trash.push(card);}
+  else if(to==='side'){card._zone='side';S.side.push(card);}
+  else if(to==='stadium'){card._zone='stadium';S.stadium.push(card);}
+  else if(to==='free'){card._zone='free';S.free.push(card);}
+  else if(to==='battle'){place(S.battle,'battle');}
+  else if(to==='bench'){const idx=si??0;place(S.bench[idx],`bench-${idx}`);}
+  render();
+};
+
+// CARD ELEMENT
+function mkCard(card,facedown=false){
+  const el=document.createElement('div');
+  el.className='card '+typeClass(card.supertype)+(facedown?' fd':'');
+  el.dataset.uid=card.uid;
+  if(!facedown){
+    if(card.imageUrl){const img=document.createElement('img');img.className='cimg';img.src=card.imageUrl;img.alt=card.name;img.loading='lazy';img.draggable=false;img.onerror=()=>{img.remove();el.appendChild(mkPh(card));};el.appendChild(img);}
+    else el.appendChild(mkPh(card));
+    el.addEventListener('mousedown',e=>{if(e.button!==0)return;e.preventDefault();startDrag(card,el,e);});
+    el.addEventListener('touchstart',e=>{startDrag(card,el,e.touches[0]);},{passive:true});
+  }
+  el.addEventListener('click',e=>{if(el.classList.contains('dragging'))return;showMenu(card,facedown);});
+  return el;
+}
+function mkPh(card){const ph=document.createElement('div');ph.className='cph';ph.textContent=typeEmoji(card.supertype);return ph;}
+
+// CARD MENU
+function showMenu(card,facedown){
+  if(facedown&&card._zone==='side'){
+    openModal('サイド',`<button class="mb" onclick="closeModal();moveCard(${card.uid},'side','hand')">手札に取る</button><button class="mb cancel" onclick="closeModal()">閉じる</button>`);
+    return;
+  }
+  const from=card._zone;const btns=[];
+  const a=(lbl,action,cls='')=>btns.push(`<button class="mb ${cls}" onclick="closeModal();${action}">${lbl}</button>`);
+  a('トラッシュに置く',`moveCard(${card.uid},'${from}','trash')`,'red');
+  a('フリーゾーンへ',`moveCard(${card.uid},'${from}','free')`);
+  a('デッキに戻す',`moveCard(${card.uid},'${from}','deck')`);
+  if(from==='trash'){a('手札に戻す',`moveCard(${card.uid},'trash','hand')`);}
+  a('閉じる','','cancel');
+  openModal(card.name,btns.join(''));
+}
+
+// RENDER POKEMON STACK（進化：下のカードを少しずらして表示）
+function renderPokeStack(pokemons,containerId){
+  const wrap=document.getElementById(containerId);if(!wrap)return;
+  wrap.innerHTML='';
+  if(!pokemons.length){wrap.style.minHeight='104px';return;}
+  const OFFSET=18;// 各カードのずれ(px)
+  const totalH=100+(pokemons.length-1)*OFFSET;
+  wrap.style.minHeight=totalH+'px';
+  wrap.style.position='relative';
+  pokemons.forEach((card,i)=>{
+    const el=mkCard(card);
+    el.style.position='absolute';
+    el.style.bottom='0';
+    el.style.left='50%';
+    el.style.transform=`translateX(-50%) translateY(-${(pokemons.length-1-i)*OFFSET}px)`;
+    el.style.zIndex=i;
+    wrap.appendChild(el);
+  });
+}
+
+function renderSlot(slot,stackId,eId,tId){
+  renderPokeStack(slot.pokemons,stackId);
+  const ep=document.getElementById(eId),tp=document.getElementById(tId);
+  if(ep){ep.innerHTML='<div class="area-label">エネルギー</div>';slot.energy.forEach(c=>{const el=mkCard(c);el.style.width='34px';el.style.height='48px';ep.appendChild(el);});}
+  if(tp){tp.innerHTML='<div class="area-label">どうぐ</div>';slot.tools.forEach(c=>{const el=mkCard(c);el.style.width='34px';el.style.height='48px';tp.appendChild(el);});}
+}
+
+// トラッシュ描画
+function renderTrash(){
+  const top=document.getElementById('trash-top');
+  const recent=document.getElementById('trash-recent');
+  top.innerHTML='';recent.innerHTML='';
+  document.getElementById('cnt-trash').textContent=S.trash.length;
+  if(!S.trash.length)return;
+  const SHOW=6;
+  if(S.trash.length>SHOW){
+    const pile=document.createElement('div');pile.className='trash-pile';
+    pile.innerHTML=`<div class="pcnt">+${S.trash.length-SHOW}</div><div class="plbl">枚</div>`;
+    pile.title='クリックでトラッシュ全体を見る';pile.onclick=()=>viewTrash();
+    top.appendChild(pile);
+  }
+  S.trash.slice(-SHOW).forEach(c=>{
+    const el=mkCard(c);el.style.width='42px';el.style.height='58px';recent.appendChild(el);
+  });
+}
+
+function rList(id,cards,fd=false){const el=document.getElementById(id);if(!el)return;el.innerHTML='';cards.forEach(c=>el.appendChild(mkCard(c,fd)));}
+
+function render(){
+  document.getElementById('cnt-deck').textContent=S.deck.length;
+  document.getElementById('pile-cnt').textContent=S.deck.length;
+  document.getElementById('cnt-hand').textContent=S.hand.length;
+  document.getElementById('cnt-side').textContent=S.side.length;
+  document.getElementById('cnt-stadium').textContent=S.stadium.length;
+  document.getElementById('hpr').textContent=S.side.length;
+  document.getElementById('htr').textContent=S.turn;
+  rList('cards-hand',S.hand);
+  rList('cards-side',S.side,true);
+  rList('cards-free',S.free);
+  renderTrash();
+  // スタジアム
+  const stadEl=document.getElementById('cards-stadium');stadEl.innerHTML='';
+  if(S.stadium.length>0){
+    const c=mkCard(S.stadium[S.stadium.length-1]);c.style.width='54px';c.style.height='76px';stadEl.appendChild(c);
+    if(S.stadium.length>1){const b=document.createElement('div');b.style.cssText='font-size:10px;color:rgba(206,147,216,.9);font-weight:700;text-align:center;margin-top:2px';b.textContent=`+${S.stadium.length-1}`;stadEl.appendChild(b);}
+  }
+  // バトル場
+  renderSlot(S.battle,'bp-wrap','ba-energy','ba-tool');
+  document.getElementById('bslot').classList.toggle('occ',S.battle.pokemons.length>0);
+  // ベンチ
+  S.bench.forEach((b,i)=>{
+    renderSlot(b,`bp-wrap-${i}`,`be-${i}`,`bt-${i}`);
+    document.querySelector(`.bnslot[data-si="${i}"]`)?.classList.toggle('occ',b.pokemons.length>0);
+  });
+  renderStatusMarkers();
+}
+
+// BENCH SETUP
+function setupDropZones(){
+  document.getElementById('bslot').dataset.dropzone='battle';
+  document.getElementById('cards-stadium').dataset.dropzone='stadium';
+  document.getElementById('cards-hand').dataset.dropzone='hand';
+  document.getElementById('trash-zone').dataset.dropzone='trash';
+}
+function setupBench(){
+  const con=document.getElementById('bench-slots');con.innerHTML='';
+  for(let i=0;i<5;i++){
+    const s=document.createElement('div');s.className='bnslot';s.dataset.si=i;s.dataset.dropzone='bench';
+    s.innerHTML=`
+      <div class="snum">${i+1}</div>
+      <div class="poke-stack-wrap" id="bp-wrap-${i}" style="min-height:104px;width:100%;position:relative"></div>
+      <div class="energy-area" id="be-${i}"><div class="area-label">E</div></div>
+      <div class="tool-area" id="bt-${i}"><div class="area-label">T</div></div>
+      <div style="display:flex;gap:3px;width:100%">
+        <button class="swpbtn" style="flex:1" onclick="swapBenchBattle(${i})">⇄ バトル</button>
+        <button class="bn-trbtn" onclick="trashZone('bench-single',${i})">🗑</button>
+      </div>`;
+    con.appendChild(s);
+  }
+}
+
+document.getElementById('btn-start').addEventListener('click',startGame);
+setupBench();
+setupDropZones();
+render();
+loadFromURL();
+</script>
+</body>
+</html>
