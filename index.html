@@ -1289,12 +1289,32 @@ async function loadByDeckCode(){
     if(data.error){unload();toast('エラー: '+data.error);return;}
     if(!data.cards?.length){unload();toast('カードが取得できませんでした');return;}
     const cards=[];
-    data.cards.forEach(c=>{for(let i=0;i<c.count;i++)cards.push({uid:uid(),name:c.name||'不明',supertype:c.supertype||'Pokémon',imageUrl:c.imageUrl||null,_zone:'deck'});});
-    fullReset(cards);
-    const btn=document.getElementById('btn-start');
-    if(btn)btn.disabled=false;
-    unload();render();toast(`${cards.length}枚のデッキを読み込みました！`);
-  }catch(e){unload();toast('通信エラー: '+e.message);}
+    data.cards.forEach(c=>{
+      for(let i=0;i<c.count;i++){
+        cards.push({
+          uid:uid(),
+          name:c.name||'不明',
+          supertype:c.supertype||'Pokémon',
+          imageUrl:c.imageUrl||null,
+          _zone:'deck'
+        });
+      }
+    });
+    
+    // 少し遅延させてからデッキを設定（初期化問題対策）
+    setTimeout(() => {
+      fullReset(cards);
+      const btn=document.getElementById('btn-start');
+      if(btn)btn.disabled=false;
+      unload();
+      render();
+      toast(`${cards.length}枚のデッキを読み込みました！`);
+    }, 100);
+    
+  }catch(e){
+    unload();
+    toast('通信エラー: '+e.message);
+  }
 }
 function loadFromURL(){
   try{
@@ -1304,16 +1324,25 @@ function loadFromURL(){
     loading('デッキデータを読み込み中...');
     setTimeout(()=>{
       try{
-        const cards=decoded.cards.map(c=>({uid:uid(),name:c.n||c.name||'不明',supertype:c.t==='P'?'Pokémon':c.t==='E'?'Energy':c.t==='T'?'Trainer':(c.supertype||'Pokémon'),imageUrl:c.i||c.imageUrl||null,_zone:'deck'}));
+        const cards=decoded.cards.map(c=>({
+          uid:uid(),
+          name:c.n||c.name||'不明',
+          supertype:c.t==='P'?'Pokémon':c.t==='E'?'Energy':c.t==='T'?'Trainer':(c.supertype||'Pokémon'),
+          imageUrl:c.i||c.imageUrl||null,
+          _zone:'deck'
+        }));
         fullReset(cards);
         const btn=document.getElementById('btn-start');
         if(btn)btn.disabled=false;
-        unload();render();toast(`${S.deck.length}枚読み込みました`);
+        unload();
+        render();
+        toast(`${cards.length}枚のデッキを読み込みました！`);
       }catch(e){
-        console.error('デッキデータ処理エラー:', e);
-        unload();toast('デッキデータの読み込みに失敗しました');
+        console.error('URLデッキ読み込みエラー:', e);
+        unload();
+        toast('デッキデータの読み込みに失敗しました');
       }
-    },300);return true;
+    },100);
   }catch(e){
     console.error('URLパラメータ解析エラー:', e);
     return false;
@@ -1348,8 +1377,23 @@ function resetField(){
   S.battle={pokemons:[],energy:[],tools:[],damages:[],statuses:new Set()};
   S.bench=Array(5).fill(0).map(()=>({pokemons:[],energy:[],tools:[],damages:[],statuses:new Set()}));
   S.turn=0;S.gameStarted=false;renderStatusMarkers();
+  // デッキ読み込み後の状態をリセット
+  if(MP.roomCode){
+    MP.ready={host:false,guest:false};
+    MP.started=false;
+    MP.activePlayer='host';
+  }
 }
-function fullReset(newDeck){S.deck=shuffle(newDeck||[]);resetField();}
+function fullReset(newDeck){
+  // デッキが空でない場合のみリセット
+  if(newDeck && newDeck.length > 0){
+    S.deck=shuffle(newDeck);
+    resetField();
+  } else {
+    console.warn('fullReset: 空のデッキが渡されました');
+    S.deck=[];
+  }
+}
 function startGame(){
   S.deck=collectAllCards();
   if(S.deck.length<13){toast('デッキが不足しています');return;}
